@@ -752,12 +752,12 @@ const ACCOUNTS = {
 
 const SEED = {
   schema: 1,
-  seedVersion: 'v1.9.0',
+  seedVersion: 'v2.0.0',
   loginAs: '',
   consumer: { providerStatus: '', password: '123456' },
   products: [
     {
-      id: 'p1', code: 'LP-V1-0001', name: '航线可飞性判定', delivery: 'API', supplier: '数据服务平台（自营）',
+      datasets: ['d1','d2','d5'], id: 'p1', code: 'LP-V1-0001', name: '航线可飞性判定', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '输入两个起降场与计划时段，返回该航线的可飞性判定、可飞时间窗与原因大类，可直接用于排班与调度决策。',
       scenes: ['航线排班', '运力调度', '报批前自查'],
       manual: [
@@ -779,7 +779,7 @@ const SEED = {
       reviewComment: '产品卡片、接口说明与样例完整，同意上架。'
     },
     {
-      id: 'p2', code: 'LP-V1-0002', name: '飞行计划冲突预检', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d3','d4'], id: 'p2', code: 'LP-V1-0002', name: '飞行计划冲突预检', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '提交拟申请的空域网格与时段，返回与既有计划的冲突等级与调整建议，用于报批前自查。',
       scenes: ['飞行计划报批', '空域冲突排查'],
       manual: [
@@ -798,7 +798,7 @@ const SEED = {
       reviewComment: '字段白名单核验通过，同意上架。'
     },
     {
-      id: 'p3', code: 'LP-V1-0003', name: '空域资源利用指数', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d3'], id: 'p3', code: 'LP-V1-0003', name: '空域资源利用指数', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '按 500 米网格 × 15 分钟时段输出空域占用率、平均等待时长与未来 72 小时可用时隙预测。',
       scenes: ['空域规划', '运力布局', '时隙预测'],
       manual: [
@@ -820,7 +820,7 @@ const SEED = {
       reviewComment: '同意上架。'
     },
     {
-      id: 'p4', code: 'LP-V1-0004', name: '起降场运行效率指数', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d6'], id: 'p4', code: 'LP-V1-0004', name: '起降场运行效率指数', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '按起降场输出周转时长、瓶颈环节与同类场站对标结果，用于场站运营诊断。',
       scenes: ['场站运营', '效能对标'],
       manual: [
@@ -894,7 +894,7 @@ const SEED = {
       status: 'draft', submittedAt: '2026-11-02 14:10', reviewedAt: '', reviewComment: ''
     },
     {
-      id: 'p8', code: 'LP-V1-0008', name: '低空航路风险预警订阅', delivery: 'API', supplier: '数据服务平台（自营）',
+      datasets: ['d5'], id: 'p8', code: 'LP-V1-0008', name: '低空航路风险预警订阅', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '按航路段推送气象、空域与航空器风险预警，支持按航路段与时段订阅。',
       scenes: ['飞行前风险评估', '在途异常预警', '航线动态调整'],
       apis: [{
@@ -2779,6 +2779,17 @@ function openProdForm(editId, opts) {
         </section>
 
         <section class="pm-sec">
+          <div class="pm-sec-hd"><h4>关联数据集</h4><span class="pm-sec-sub">可多选，说明该产品使用了哪些数据</span></div>
+          <div class="chk-group" id="fDatasets">
+            ${(DSP.db.datasets || []).filter(d => d.status === 'on').map(d => `<label class="chk">
+              <input type="checkbox" class="ds-pick" value="${d.id}" ${p && (p.datasets || []).indexOf(d.id) > -1 ? 'checked' : ''}>
+              ${esc(d.name)}<span class="mini" style="margin-left:2px">${esc(d.code)}</span>
+            </label>`).join('')}
+          </div>
+          <div class="hint">关联关系会同步展示在数据集的「产品引用」中</div>
+        </section>
+
+        <section class="pm-sec">
           <div class="pm-sec-hd"><h4><i class="req-dot">*</i>SDK 提供方式</h4><span class="pm-sec-sub">必填，二选一</span></div>
           <div class="pm-modes">
             <button class="pm-mode ${sdkMode === 'file' ? 'on' : ''}" data-act="sdkMode" data-v="file">上传 SDK 包</button>
@@ -2888,8 +2899,9 @@ function saveProductForm() {
       ? { type: 'file', name: sdkName, size: '2.0 MB', at: today() }
       : productOf(editingId).sdk;
   }
+  const pickedDatasets = Array.from(document.querySelectorAll('#fDatasets .ds-pick')).filter(x => x.checked).map(x => x.value);
   const base = {
-    name, desc, scenes, apis,
+    name, desc, scenes, apis, datasets: pickedDatasets,
     tiers,
     sdk: sdkObj,
     delivery: 'API'
@@ -3650,6 +3662,17 @@ function openResProduct(id) {
           <div style="padding:0 0 8px">${apisHTML(p)}</div>
         </section>
 
+        ${(p.datasets || []).length ? `<section class="pm-sec">
+          <div class="pm-sec-hd"><h4>关联数据集</h4><span class="pm-sec-sub">${(p.datasets || []).length} 个</span></div>
+          <div style="padding:0 0 14px">
+            ${(p.datasets || []).map(id => {
+              const d = (DSP.db.datasets || []).find(x => x.id === id);
+              if (!d) return '';
+              return `<span class="ds-chip" style="cursor:default" title="${esc(d.code)}">${esc(d.name)}</span>`;
+            }).join('')}
+          </div>
+        </section>` : ''}
+
         ${isConsumer ? '' : `<section class="pm-sec">
           <div class="pm-sec-hd"><h4>授权客户</h4><span class="pm-sec-sub">${grants.length} 项</span></div>
           <div class="card-bd tight" style="padding:0 0 12px">
@@ -3704,7 +3727,9 @@ function openDatasetDetail(id) {
     ['开放属性', d.openType ? `<span class="badge ${d.openType === '无条件开放' ? 'blue' : 'warn'}">${esc(d.openType)}</span>` : '—'],
     ['数据规模', esc(d.rows || (hasFields ? d.fields.length + ' 个字段' : '—'))],
     ['产品引用', (() => {
-      const names = (d.refs || []).map(id => productOf(id)).filter(x => x && x.id).map(x => x.name);
+      const names = DSP.db.products
+        .filter(p => (p.datasets || []).indexOf(d.id) > -1)
+        .map(p => p.name);
       return names.length ? `<b>${names.length}</b> 个　${names.map(n => esc(n)).join('、')}` : '0 个';
     })()],
     ['当前状态', d.status === 'on' ? '<span class="badge ok">在架</span>' : '<span class="badge gray">已下架</span>']
