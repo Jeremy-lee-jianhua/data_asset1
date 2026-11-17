@@ -757,7 +757,7 @@ const SEED = {
   consumer: { providerStatus: '', password: '123456' },
   products: [
     {
-      datasets: ['d1','d2','d5'], id: 'p1', code: 'LP-V1-0001', name: '航线可飞性判定', delivery: 'API', supplier: '数据服务平台（自营）',
+      datasets: ['d1','d2','d5'], id: 'p1', code: 'LP-2026-0001', name: '航线可飞性判定', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '输入两个起降场与计划时段，返回该航线的可飞性判定、可飞时间窗与原因大类，可直接用于排班与调度决策。',
       scenes: ['航线排班', '运力调度', '报批前自查'],
       manual: [
@@ -779,7 +779,7 @@ const SEED = {
       reviewComment: '产品卡片、接口说明与样例完整，同意上架。'
     },
     {
-      datasets: ['d3','d4'], id: 'p2', code: 'LP-V1-0002', name: '飞行计划冲突预检', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d3','d4'], id: 'p2', code: 'LP-2026-0002', name: '飞行计划冲突预检', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '提交拟申请的空域网格与时段，返回与既有计划的冲突等级与调整建议，用于报批前自查。',
       scenes: ['飞行计划报批', '空域冲突排查'],
       manual: [
@@ -798,7 +798,7 @@ const SEED = {
       reviewComment: '字段白名单核验通过，同意上架。'
     },
     {
-      datasets: ['d3'], id: 'p3', code: 'LP-V1-0003', name: '空域资源利用指数', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d3'], id: 'p3', code: 'LP-2026-0003', name: '空域资源利用指数', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '按 500 米网格 × 15 分钟时段输出空域占用率、平均等待时长与未来 72 小时可用时隙预测。',
       scenes: ['空域规划', '运力布局', '时隙预测'],
       manual: [
@@ -820,7 +820,7 @@ const SEED = {
       reviewComment: '同意上架。'
     },
     {
-      datasets: ['d6'], id: 'p4', code: 'LP-V1-0004', name: '起降场运行效率指数', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d6'], id: 'p4', code: 'LP-2026-0004', name: '起降场运行效率指数', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '按起降场输出周转时长、瓶颈环节与同类场站对标结果，用于场站运营诊断。',
       scenes: ['场站运营', '效能对标'],
       manual: [
@@ -839,7 +839,7 @@ const SEED = {
       reviewComment: '同意上架。'
     },
     {
-      id: 'p5', code: 'LP-V1-0005', name: '低空气象适飞性指数', delivery: 'API', supplier: '数据服务平台（自营）',
+      id: 'p5', code: 'LP-2026-0005', name: '低空气象适飞性指数', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '按区域与时段输出适飞概率与建议作业窗口，融合气象观测与历史取消、延误数据。',
       scenes: ['气象评估', '作业窗口推荐'],
       manual: [
@@ -857,7 +857,7 @@ const SEED = {
       status: 'pending_review', submittedAt: '2026-10-30 09:18', reviewedAt: '', reviewComment: ''
     },
     {
-      id: 'p6', code: 'LP-V1-0006', name: '城市低空需求热力指数', delivery: 'API', supplier: '低空规划研究中心',
+      id: 'p6', code: 'LP-2026-0006', name: '城市低空需求热力指数', delivery: 'API', supplier: '低空规划研究中心',
       desc: '按 1 公里网格输出订单需求热力与时段分布，支撑起降场选址与运力预置。',
       scenes: ['选址评估', '运力预置'],
       manual: [
@@ -876,7 +876,7 @@ const SEED = {
       reviewComment: '接口说明缺少数据来源合法性说明，请补充后重新提交。'
     },
     {
-      id: 'p7', code: 'LP-V1-0007', name: '低空航路拥堵指数', delivery: 'API', supplier: '数据服务平台（自营）',
+      id: 'p7', code: 'LP-2026-0007', name: '低空航路拥堵指数', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '按航路段输出单位时间通行压力与拥堵时长，辅助航线编排与临时绕飞决策。',
       scenes: ['航线编排', '流量调度'],
       manual: [
@@ -894,7 +894,7 @@ const SEED = {
       status: 'draft', submittedAt: '2026-11-02 14:10', reviewedAt: '', reviewComment: ''
     },
     {
-      datasets: ['d5'], id: 'p8', code: 'LP-V1-0008', name: '低空航路风险预警订阅', delivery: 'API', supplier: '数据服务平台（自营）',
+      datasets: ['d5'], id: 'p8', code: 'LP-2026-0008', name: '低空航路风险预警订阅', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '按航路段推送气象、空域与航空器风险预警，支持按航路段与时段订阅。',
       scenes: ['飞行前风险评估', '在途异常预警', '航线动态调整'],
       apis: [{
@@ -920,7 +920,7 @@ const SEED = {
   ],
 
   datasets: [
-    { range: { start: '2026-01-01', end: '2026-09-30', ongoing: false }, refs: ['p1','p2'], id: 'd1', code: 'DS-V1-0001', name: '低空航路基础数据', supplier: '数据服务平台（自营）', category: '基础地理', rows: '1.2 万条', freq: '每季度', domain: '低空经济', openType: '无条件开放', status: 'on',
+    { range: { start: '2026-01-01', end: '2026-09-30', ongoing: false }, refs: ['p1','p2'], id: 'd1', code: 'DS-2026-0001', name: '低空航路基础数据', supplier: '数据服务平台（自营）', category: '基础地理', rows: '1.2 万条', freq: '每季度', domain: '低空经济', openType: '无条件开放', status: 'on',
       scope: ['杭州市', '上城区', '拱墅区', '西湖区', '滨江区', '萧山区', '余杭区', '临平区', '钱塘区', '富阳区', '临安区', '桐庐县', '淳安县', '建德市'],
       desc: '航路中心线、宽度、可用高度层与报备状态，支撑航线规划与冲突检测。',
       fields: [
@@ -931,7 +931,7 @@ const SEED = {
         { name: '航路宽度', en: 'width', type: '小数', len: '8,2', nullable: '是', pk: '否', desc: '航路宽度（公里）', sample: '2.5' },
         { name: '更新时间', en: 'update_time', type: '日期时间', len: '—', nullable: '是', pk: '否', desc: '数据最近更新时间' }
       ] },
-    { range: { start: '2026-01-01', end: '2026-10-31', ongoing: false }, refs: ['p1'], id: 'd2', code: 'DS-V1-0002', name: '起降场基础档案', supplier: '数据服务平台（自营）', category: '基础地理', rows: '2,860 条', freq: '每月', domain: '交通运输', openType: '无条件开放', status: 'on',
+    { range: { start: '2026-01-01', end: '2026-10-31', ongoing: false }, refs: ['p1'], id: 'd2', code: 'DS-2026-0002', name: '起降场基础档案', supplier: '数据服务平台（自营）', category: '基础地理', rows: '2,860 条', freq: '每月', domain: '交通运输', openType: '无条件开放', status: 'on',
       scope: ['杭州市', '上城区', '拱墅区', '西湖区', '滨江区', '萧山区', '余杭区', '临平区', '钱塘区'],
       desc: '起降场位置、类别、可用机位与运行时间等基础信息。',
       fields: [
@@ -942,7 +942,7 @@ const SEED = {
         { name: '运行状态', en: 'run_status', type: '文本', len: '10', nullable: '是', pk: '否', desc: '正常 / 维护 / 停用', sample: '正常' },
         { name: '更新时间', en: 'update_time', type: '日期时间', len: '—', nullable: '是', pk: '否', desc: '数据最近更新时间' }
       ] },
-    { range: { start: '2025-07-01', end: '2026-06-30', ongoing: false }, refs: ['p2','p3'], id: 'd3', code: 'DS-V1-0003', name: '空域网格划分数据', supplier: '长三角低空数据服务中心', category: '空域数据', rows: '48.6 万条', freq: '每季度', domain: '地理空间', openType: '受限开放', status: 'on',
+    { range: { start: '2025-07-01', end: '2026-06-30', ongoing: false }, refs: ['p2','p3'], id: 'd3', code: 'DS-2026-0003', name: '空域网格划分数据', supplier: '长三角低空数据服务中心', category: '空域数据', rows: '48.6 万条', freq: '每季度', domain: '地理空间', openType: '受限开放', status: 'on',
       scope: ['杭州市', '萧山区', '余杭区', '钱塘区', '富阳区', '临安区'],
       desc: '500 米网格的空域属性、限制区与临时管制标记。',
       fields: [
@@ -951,7 +951,7 @@ const SEED = {
         { name: '是否限制区', en: 'restricted', type: '布尔', len: '1', nullable: '否', pk: '否', desc: '是否属于限制飞行区', sample: 'false' },
         { name: '空间哈希', en: 'geo_hash', type: '文本', len: '16', nullable: '是', pk: '否', desc: '网格中心点编码' }
       ] },
-    { range: { start: '2025-11-01', end: '2026-11-04', ongoing: false }, refs: ['p2'], id: 'd4', code: 'DS-V1-0004', name: '历史飞行计划样本', supplier: '长三角低空数据服务中心', category: '运行数据', rows: '36.4 万条', freq: '每日', domain: '交通运输', openType: '受限开放', status: 'on',
+    { range: { start: '2025-11-01', end: '2026-11-04', ongoing: false }, refs: ['p2'], id: 'd4', code: 'DS-2026-0004', name: '历史飞行计划样本', supplier: '长三角低空数据服务中心', category: '运行数据', rows: '36.4 万条', freq: '每日', domain: '交通运输', openType: '受限开放', status: 'on',
       scope: ['杭州市', '上城区', '滨江区', '萧山区', '余杭区', '临平区', '钱塘区'],
       desc: '脱敏后的飞行计划报备记录，含机型、时刻与航路。',
       fields: [
@@ -962,7 +962,7 @@ const SEED = {
         { name: '计划时刻', en: 'plan_time', type: '日期时间', len: '—', nullable: '否', pk: '否', desc: '计划起飞时间', sample: '2026-11-04 09:30:00' },
         { name: '计划状态', en: 'plan_status', type: '文本', len: '10', nullable: '是', pk: '否', desc: '已报备 / 已取消' }
       ] },
-    { range: { start: '2025-01-01', end: '', ongoing: true }, refs: ['p1','p8'], id: 'd5', code: 'DS-V1-0005', name: '气象观测点位数据', supplier: '数据服务平台（自营）', category: '气象数据', rows: '1,024 条', freq: '每日', domain: '气象', openType: '无条件开放', status: 'on',
+    { range: { start: '2025-01-01', end: '', ongoing: true }, refs: ['p1','p8'], id: 'd5', code: 'DS-2026-0005', name: '气象观测点位数据', supplier: '数据服务平台（自营）', category: '气象数据', rows: '1,024 条', freq: '每日', domain: '气象', openType: '无条件开放', status: 'on',
       scope: ['杭州市', '上城区', '拱墅区', '西湖区', '滨江区', '萧山区', '余杭区', '临平区', '钱塘区', '富阳区', '临安区', '桐庐县', '淳安县', '建德市'],
       desc: '地面气象站与低空观测点位的分布与要素清单。',
       fields: [
@@ -972,7 +972,7 @@ const SEED = {
         { name: '纬度', en: 'lat', type: '小数', len: '10,6', nullable: '否', pk: '否', desc: 'WGS84 纬度', sample: '30.208' },
         { name: '观测要素', en: 'elements', type: '文本', len: '128', nullable: '是', pk: '否', desc: '风速、能见度等要素' }
       ] },
-    { range: { start: '2026-04-01', end: '2026-10-30', ongoing: false }, refs: ['p4'], id: 'd6', code: 'DS-V1-0006', name: '起降场运行日志', supplier: '长三角低空数据服务中心', category: '运行数据', rows: '12.8 万条', freq: '每日', domain: '交通运输', openType: '受限开放', status: 'off',
+    { range: { start: '2026-04-01', end: '2026-10-30', ongoing: false }, refs: ['p4'], id: 'd6', code: 'DS-2026-0006', name: '起降场运行日志', supplier: '长三角低空数据服务中心', category: '运行数据', rows: '12.8 万条', freq: '每日', domain: '交通运输', openType: '受限开放', status: 'off',
       scope: ['杭州市', '萧山区', '余杭区'],
       desc: '起降场起降架次、保障时长与异常事件记录。',
       fields: [
@@ -1111,7 +1111,7 @@ const SEED = {
       title: '授权已开通：《空域资源利用指数》', body: '授权单 G-V1-20261105-005 已签发，2026-11-10 起生效，调用密钥同步发放。',
       at: '2026-11-05 09:40', read: false, refType: 'grant', refId: 'G-V1-20261105-005' },
     { id: 'M-002', to: 'consumer', org: '云帆低空物流科技有限公司', type: '资源', level: '普通',
-      title: '新产品上架：《起降场运行效率指数》', body: '按起降场输出周转时长、瓶颈环节与同类场站对标结果，可在数据资源中查看详情。',
+      title: '新产品上架：《起降场运行效率指数》', body: '按起降场输出周转时长、瓶颈环节与同类场站对标结果，可在数据目录中查看详情。',
       at: '2026-11-03 10:20', read: true, refType: 'product', refId: 'p4' },
     { id: 'M-003', to: 'consumer', org: '云帆低空物流科技有限公司', type: '资源', level: '普通',
       title: '新数据集上架：《空域网格划分数据》', body: '48.6 万条，每季度更新，时间范围 2025-07-01 ~ 2026-06-30。',
@@ -1163,8 +1163,8 @@ const SEED = {
     { at: '2026-11-02 16:40:11', name: '王审核', role: 'operator', action: '新增系统用户', target: '钱伟 / user9', result: 'success', note: '角色：数据使用方' },
     { at: '2026-11-02 15:22:38', name: '王审核', role: 'operator', action: '停用账号', target: '吴强 / user3', result: 'success', note: '原因：长期未登录' },
     { at: '2026-11-02 11:08:19', name: '王审核', role: 'operator', action: '调整角色', target: '陈涛 / user2', result: 'success', note: '使用方 → 使用方 + 运营方' },
-    { at: '2026-11-01 17:30:44', name: '王审核', role: 'operator', action: '产品上架通过', target: '《空域资源利用指数》/ LP-V1-0003', result: 'success', note: '' },
-    { at: '2026-11-01 10:15:27', name: '王审核', role: 'operator', action: '产品上架驳回', target: '《城市低空需求热力指数》/ LP-V1-0006', result: 'success', note: '缺少数据来源合法性说明' },
+    { at: '2026-11-01 17:30:44', name: '王审核', role: 'operator', action: '产品上架通过', target: '《空域资源利用指数》/ LP-2026-0003', result: 'success', note: '' },
+    { at: '2026-11-01 10:15:27', name: '王审核', role: 'operator', action: '产品上架驳回', target: '《城市低空需求热力指数》/ LP-2026-0006', result: 'success', note: '缺少数据来源合法性说明' },
     { at: '2026-10-31 16:48:03', name: '王审核', role: 'operator', action: '授权审批驳回', target: '《起降场运行效率指数》/ A-V1-20261022-005', result: 'success', note: '申请范围超出交付边界' },
     { at: '2026-10-31 09:20:36', name: '王审核', role: 'operator', action: '权限分配', target: '使用方菜单 · 消息中心', result: 'success', note: '由 开启 → 关闭' },
     { at: '2026-10-30 14:05:52', name: '王审核', role: 'operator', action: '导出统计报表', target: '2026-10 调用统计', result: 'success', note: '' },
@@ -1433,8 +1433,8 @@ const ROLE_NAV = {
   ],
   operator: [
     { key: 'dashboard', name: '总览', icon: ICON.home },
-    { key: 'customers', name: '服务客户', icon: ICON.user },
-    { key: 'resources', name: '数据资源', icon: ICON.catalog },
+    { key: 'customers', name: '用户管理', icon: ICON.user },
+    { key: 'resources', name: '数据目录', icon: ICON.catalog },
     { key: 'audit', name: '调用监控', icon: ICON.audit },
     { key: 'access', name: '调用管理', icon: ICON.check },
     { key: 'users', group: '系统管理', name: '系统用户', icon: ICON.users },
@@ -2754,7 +2754,7 @@ function openProdForm(editId, opts) {
       <div class="pm-body">
         <div class="pm-head">
           ${badge(PROD_STATUS, p ? p.status : (isOp ? 'on' : 'draft'))}
-          <span class="mono mini">${p ? esc(p.code) : '保存后自动生成编号'}</span>
+          <span class="mono mini">${p ? esc(p.code) : nextCode('product') + '（保存后生效）'}</span>
           <span class="mini pm-head-at">${p ? '最近更新 ' + esc(p.submittedAt || '—') : ''}</span>
         </div>
         ${p && p.status === 'rejected' && p.reviewComment ? `<div class="pm-alert"><b>驳回原因：</b>${esc(p.reviewComment)}</div>` : ''}
@@ -2911,24 +2911,22 @@ function saveProductForm() {
     Object.assign(productOf(editingId), base);
     toast('已保存修改', 'ok');
   } else if (isOp) {
-    const maxNo = Math.max(0, ...DSP.db.products.map(x => {
-      const m = (x.code || '').match(/(\d{4})$/); return m ? Number(m[1]) : 0;
-    }));
-    const no = maxNo + 1;
+    const code = nextCode('product');
+    const no = Number(code.slice(-4));
     DSP.db.products.unshift(Object.assign({
-      id: 'p' + no, code: 'LP-V1-' + String(no).padStart(4, '0'),
+      id: 'p' + no, code,
       status: 'on', submittedAt: today(), reviewedAt: today(), reviewComment: '',
       history: [{ at: today() + ' 00:00', action: '上架', by: '王审核', note: '运营方登记并上架' }]
     }, base));
     pushMsg({ to: 'consumer', type: '资源', level: '普通',
       title: `新产品上架：《${name}》`,
-      body: '供应方 ' + supplier + '，共 ' + apis.length + ' 个接口，可在数据资源中查看详情。',
+      body: '供应方 ' + supplier + '，共 ' + apis.length + ' 个接口，可在数据目录中查看详情。',
       refType: 'product', refId: 'p' + no });
     toast('已新增并上架「' + name + '」', 'ok');
   } else {
     const n = DSP.db.products.length + 1;
     DSP.db.products.unshift(Object.assign({
-      id: 'p' + n, code: 'LP-V1-' + String(n).padStart(4, '0'),
+      id: 'p' + n, code: 'LP-2026-' + String(n).padStart(4, '0'),
       status: 'draft', submittedAt: today(), reviewedAt: '', reviewComment: ''
     }, base));
     toast('草稿已保存，可在列表提交审核', 'ok');
@@ -3161,8 +3159,8 @@ function pageCustomers() {
   </div>`;
 
   return `
-  <div class="crumb">首页 / <span class="cur">服务客户</span></div>
-  <div class="page-head"><div><h1 class="page-title">服务客户</h1>
+  <div class="crumb">首页 / <span class="cur">用户管理</span></div>
+  <div class="page-head"><div><h1 class="page-title">用户管理</h1>
     <p class="page-desc">从使用方与供给方两个维度管理平台客户　·　${rows.length} 家使用方 · ${sups.length} 家供给方</p></div></div>
 
   <div class="grid g4" style="margin-bottom:14px">
@@ -3345,6 +3343,19 @@ function parseRows(str) {
   return Math.round(n * (m[2] === '万' ? 10000 : m[2] === '亿' ? 100000000 : 1));
 }
 
+function nextCode(kind) {
+  const y = nowStr().slice(0, 4);
+  const pre = kind === 'product' ? 'LP' : 'DS';
+  const list = kind === 'product' ? DSP.db.products : (DSP.db.datasets || []);
+  const head = pre + '-' + y + '-';
+  const max = Math.max(0, ...list.map(x => {
+    const code = x.code || '';
+    if (code.indexOf(head) !== 0) return 0;
+    return Number(code.slice(head.length)) || 0;
+  }));
+  return head + String(max + 1).padStart(4, '0');
+}
+
 function pageResources() {
   const products = DSP.db.products.filter(p => p.status === 'on');
   const datasets = (DSP.db.datasets || []).filter(d => d.status === 'on');
@@ -3352,9 +3363,9 @@ function pageResources() {
   const isProd = resTab === 'product';
 
   return `
-  <div class="crumb">首页 / <span class="cur">数据资源</span></div>
+  <div class="crumb">首页 / <span class="cur">数据目录</span></div>
   <div class="page-head">
-    <div><h1 class="page-title">数据资源</h1>
+    <div><h1 class="page-title">数据目录</h1>
       <p class="page-desc">平台对外提供的数据集与数据服务产品</p></div>
     ${state.role === 'operator' ? `<button class="btn btn-primary" data-act="newRes">+ 新增数据资源</button>` : ''}
   </div>
@@ -3493,7 +3504,7 @@ function openDatasetForm() {
       <div class="pm-body">
         <div class="pm-head">
           <span class="badge ok">在架</span>
-          <span class="mono mini">保存后自动生成编号</span>
+          <span class="mono mini">${nextCode('dataset')}（保存后生效）</span>
         </div>
 
         <section class="pm-sec">
@@ -3584,12 +3595,10 @@ function saveDatasetForm() {
   if (!fields.length) { toast('请至少登记一个数据项', 'err'); return; }
   const badField = fields.find(f => !f.name || !f.en);
   if (badField) { toast('数据项缺少字段名称或英文名称', 'err'); return; }
-  const maxNo = Math.max(0, ...(DSP.db.datasets || []).map(d => {
-    const m = (d.code || '').match(/(\d{4})$/); return m ? Number(m[1]) : 0;
-  }));
-  const no = maxNo + 1;
+  const code = nextCode('dataset');
+  const no = Number(code.slice(-4));
   DSP.db.datasets.unshift({
-    id: 'd' + no, code: 'DS-V1-' + String(no).padStart(4, '0'),
+    id: 'd' + no, code,
     name, desc, supplier: PLATFORM_SUPPLIER,
     freq: g('dFreq'), domain, openType: g('dOpen'),
     range: { start: rStart, end: rEnd, ongoing },
@@ -3598,7 +3607,7 @@ function saveDatasetForm() {
   });
   pushMsg({ to: 'consumer', type: '资源', level: '普通',
     title: `新数据集上架：《${name}》`,
-    body: (g('dRows') || '') + '　' + g('dFreq') + '更新，可在数据资源中查看详情。',
+    body: (g('dRows') || '') + '　' + g('dFreq') + '更新，可在数据目录中查看详情。',
     refType: 'dataset', refId: 'd' + no });
   DSP.save(); closeModal();
   resTab = 'dataset';
@@ -4939,12 +4948,12 @@ function pageLogs() {
 /* ---------------- 权限分配 ---------------- */
 const PERM_MENUS = {
   user: [
-    { key: 'resources', name: '数据资源', desc: '查看平台数据集与数据产品' },
+    { key: 'resources', name: '数据目录', desc: '查看平台数据集与数据产品' },
     { key: 'audit', name: '调用监控', desc: '查看调用量、成功率与调用明细' },
-    { key: 'addResource', name: '新增数据资源', desc: '数据资源页的「新增数据资源」按钮', kind: 'action', parent: 'resources' }
+    { key: 'addResource', name: '新增数据资源', desc: '数据目录页的「新增数据资源」按钮', kind: 'action', parent: 'resources' }
   ],
   provider: [
-    { key: 'resources', name: '数据资源', desc: '查看平台数据集与数据产品' },
+    { key: 'resources', name: '数据目录', desc: '查看平台数据集与数据产品' },
     { key: 'audit', name: '调用监控', desc: '查看调用量、成功率与调用明细' }
   ]
 };
@@ -4989,7 +4998,7 @@ function pagePerms() {
         ).join('')}
       </div>
       <div class="card-bd" style="padding-top:9px;padding-bottom:9px;border-top:1px solid #EEF2F7">
-        <span class="mini">关闭「数据资源」后，其下的「新增数据资源」自动失效；功能权限只控制按钮是否出现，不改变菜单可见性</span>
+        <span class="mini">关闭「数据目录」后，其下的「新增数据资源」自动失效；功能权限只控制按钮是否出现，不改变菜单可见性</span>
       </div>
     </div>
 
@@ -5009,7 +5018,7 @@ function pagePerms() {
   <div class="card">
     <div class="card-bd" style="font-size:12.5px;color:#5A6B80;line-height:2">
       <b style="color:#1D2939">配置说明</b><br>
-      · 使用者可配置两个菜单：数据资源、调用监控；「新增数据资源」为数据资源页内的功能权限<br>
+      · 使用者可配置两个菜单：数据目录、调用监控；「新增数据资源」为数据目录页内的功能权限<br>
       · 变更对该身份下所有账号生效，账号下次进入页面时按新配置渲染<br>
       · 关闭菜单后，该页面无法通过链接直达，会自动回到第一个可用菜单<br>
       · 供给者与运营方当前为同一主体，供给者权限不在此处配置
