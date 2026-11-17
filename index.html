@@ -437,6 +437,12 @@ a.btn{text-decoration:none}
 .info-grid dd{padding:12px 0;margin:0;font-size:13px;border-bottom:1px dashed var(--line-2)}
 .file-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px dashed var(--line-2)}
 .file-ico{width:34px;height:34px;border-radius:5px;background:var(--blue-3);display:grid;place-items:center;color:var(--blue);flex:none}
+.doc-page{background:#F4F6F9;border-radius:8px;padding:18px 20px 22px}
+.doc-page-hd{background:#fff;border-radius:8px 8px 0 0;padding:18px 22px;border-bottom:1px solid #EEF2F7}
+.doc-page-title{font-size:16px;font-weight:600;color:#0F2748}
+.doc-page-meta{font-size:11.5px;color:#98A2B3;margin-top:6px}
+.doc-page-body{background:#fff;border-radius:0 0 8px 8px;padding:18px 22px 24px;font-size:13px;line-height:2;color:#475467}
+.doc-page-body p{margin:0 0 10px}
 .rule-table th{background:#F7F9FC;text-align:left;padding:9px 12px;font-weight:500;font-size:12px;color:#667085;border-bottom:1px solid #EEF2F7;white-space:nowrap}
 .rule-table td{padding:10px 12px;border-bottom:1px dashed #EEF2F7;vertical-align:top}
 .rule-table tbody tr:hover{background:#FAFCFF}
@@ -752,12 +758,12 @@ const ACCOUNTS = {
 
 const SEED = {
   schema: 1,
-  seedVersion: 'v2.0.0',
+  seedVersion: 'v2.1.0',
   loginAs: '',
   consumer: { providerStatus: '', password: '123456' },
   products: [
     {
-      datasets: ['d1','d2','d5'], id: 'p1', code: 'LP-2026-0001', name: '航线可飞性判定', delivery: 'API', supplier: '数据服务平台（自营）',
+      datasets: ['d1','d2','d5'], manualFile: { name: '航线可飞性判定-产品说明书-v1.2.pdf', size: '1.8 MB', type: 'PDF', at: '2026-09-28' }, id: 'p1', code: 'LP-2026-0001', name: '航线可飞性判定', delivery: 'API', supplier: '数据服务平台（自营）',
       desc: '输入两个起降场与计划时段，返回该航线的可飞性判定、可飞时间窗与原因大类，可直接用于排班与调度决策。',
       scenes: ['航线排班', '运力调度', '报批前自查'],
       manual: [
@@ -779,7 +785,7 @@ const SEED = {
       reviewComment: '产品卡片、接口说明与样例完整，同意上架。'
     },
     {
-      datasets: ['d3','d4'], id: 'p2', code: 'LP-2026-0002', name: '飞行计划冲突预检', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d3','d4'], manualFile: { name: '飞行计划冲突预检-产品说明书-v1.0.docx', size: '860 KB', type: 'Word', at: '2026-10-08' }, id: 'p2', code: 'LP-2026-0002', name: '飞行计划冲突预检', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '提交拟申请的空域网格与时段，返回与既有计划的冲突等级与调整建议，用于报批前自查。',
       scenes: ['飞行计划报批', '空域冲突排查'],
       manual: [
@@ -798,7 +804,7 @@ const SEED = {
       reviewComment: '字段白名单核验通过，同意上架。'
     },
     {
-      datasets: ['d3'], id: 'p3', code: 'LP-2026-0003', name: '空域资源利用指数', delivery: 'API', supplier: '长三角低空数据服务中心',
+      datasets: ['d3'], manualFile: { name: '空域资源利用指数-产品说明书-v1.1.pdf', size: '2.3 MB', type: 'PDF', at: '2026-10-12' }, id: 'p3', code: 'LP-2026-0003', name: '空域资源利用指数', delivery: 'API', supplier: '长三角低空数据服务中心',
       desc: '按 500 米网格 × 15 分钟时段输出空域占用率、平均等待时长与未来 72 小时可用时隙预测。',
       scenes: ['空域规划', '运力布局', '时隙预测'],
       manual: [
@@ -2735,6 +2741,25 @@ function renderApiList() {
 
 let prodFormMode = 'provider';
 
+let formManual = null;
+const MANUAL_URLS = {};
+
+function toRows(v, kind) {
+  if (Array.isArray(v)) return v.length ? v : [blankRow()];
+  if (typeof v === 'string' && v.trim()) {
+    const rows = v.split('、').map(seg => {
+      const m = seg.match(/^([A-Za-z0-9_]+)（([^）]*)）/);
+      if (m) {
+        const note = m[2].replace(/[，,]?(必填|选填)/g, '').trim();
+        return { name: m[1], type: 'string', req: /必填/.test(m[2]), desc: note || '—' };
+      }
+      return { name: seg.trim().slice(0, 24), type: 'string', req: false, desc: '—' };
+    }).filter(r => r.name);
+    return rows.length ? rows : [blankRow()];
+  }
+  return [blankRow()];
+}
+
 function openProdForm(editId, opts) {
   prodFormMode = (opts && opts.mode) || 'provider';
   const isOp = prodFormMode === 'operator';
@@ -2742,11 +2767,12 @@ function openProdForm(editId, opts) {
   const p = editingId ? productOf(editingId) : null;
   formApis = p && p.apis && p.apis.length
     ? p.apis.map(a => ({ id: a.id, name: a.name, method: a.method, path: a.path, desc: a.desc,
-        params: Array.isArray(a.params) ? a.params : [blankRow()],
-        fields: Array.isArray(a.fields) ? a.fields : [blankRow()],
+        params: toRows(a.params, 'param'),
+        fields: toRows(a.fields, 'field'),
         constraint: a.constraint, req: (a.sample || {}).req || '', res: (a.sample || {}).res || '', _open: true }))
     : [blankApi()];
   sdkMode = (p && p.sdk && p.sdk.type === 'link') ? 'link' : 'file';
+  formManual = p && p.manualFile ? Object.assign({}, p.manualFile) : null;
   const tiers = p ? p.tiers : [{ name: '包月', months: 1, cap: 10000, overage: 0 }];
   modal({
     title: editingId ? '编辑产品 · ' + p.name : (isOp ? '新增数据产品' : '登记数据服务产品'), width: 920, bodyClass: 'pm-bd',
@@ -2807,6 +2833,18 @@ function openProdForm(editId, opts) {
               <input class="input mono" id="sdkUrl" value="${p && p.sdk && p.sdk.type === 'link' ? esc(p.sdk.url || '') : ''}" placeholder="https://example.com/sdk/xxx-sdk-1.0.0.zip"></div>
             <div class="hint">填写可公开访问的下载地址，使用方在「调用统计」中通过该链接下载</div>
           </div>
+        </section>
+
+        <section class="pm-sec">
+          <div class="pm-sec-hd"><h4>产品说明书</h4><span class="pm-sec-sub">支持 PDF、Word（.doc / .docx）</span></div>
+          <div class="pm-sdk">
+            <span class="mini" id="manualLabel">${formManual ? esc(formManual.name) + '　·　' + esc(formManual.size) : '未上传'}</span>
+            <button class="btn btn-sm" data-act="uploadManual">上传说明书</button>
+            <button class="btn btn-sm" data-act="previewManual" id="manualPrevBtn" ${formManual ? '' : 'disabled style="opacity:.45;cursor:not-allowed"'}>预览</button>
+            <button class="btn btn-ghost" data-act="removeManual" id="manualDelBtn" style="color:#B42318;${formManual ? '' : 'display:none'}">移除</button>
+          </div>
+          <input type="file" id="manualInput" accept=".pdf,.doc,.docx" style="display:none">
+          <div class="hint">上传后在产品详情中可在线预览；建议命名如「产品名-说明书-v1.0.pdf」</div>
         </section>
 
         ${isOp ? '' : `<section class="pm-sec">
@@ -2902,13 +2940,16 @@ function saveProductForm() {
   const pickedDatasets = Array.from(document.querySelectorAll('#fDatasets .ds-pick')).filter(x => x.checked).map(x => x.value);
   const base = {
     name, desc, scenes, apis, datasets: pickedDatasets,
+    manualFile: formManual ? { name: formManual.name, size: formManual.size, type: formManual.type, at: formManual.at } : null,
     tiers,
     sdk: sdkObj,
     delivery: 'API'
   };
   if (isOp) base.supplier = supplier;
+  let savedId = null;
   if (editingId) {
     Object.assign(productOf(editingId), base);
+    savedId = editingId;
     toast('已保存修改', 'ok');
   } else if (isOp) {
     const code = nextCode('product');
@@ -2918,6 +2959,7 @@ function saveProductForm() {
       status: 'on', submittedAt: today(), reviewedAt: today(), reviewComment: '',
       history: [{ at: today() + ' 00:00', action: '上架', by: '王审核', note: '运营方登记并上架' }]
     }, base));
+    savedId = 'p' + no;
     pushMsg({ to: 'consumer', type: '资源', level: '普通',
       title: `新产品上架：《${name}》`,
       body: '供应方 ' + supplier + '，共 ' + apis.length + ' 个接口，可在数据目录中查看详情。',
@@ -2929,8 +2971,10 @@ function saveProductForm() {
       id: 'p' + n, code: 'LP-2026-' + String(n).padStart(4, '0'),
       status: 'draft', submittedAt: today(), reviewedAt: '', reviewComment: ''
     }, base));
+    savedId = 'p' + n;
     toast('草稿已保存，可在列表提交审核', 'ok');
   }
+  if (formManual && formManual.url && savedId) MANUAL_URLS[savedId] = formManual.url;
   DSP.save(); closeModal(); render();
 }
 
@@ -3497,39 +3541,48 @@ function dsFieldRowHTML(r) {
   </div>`;
 }
 
-function openDatasetForm() {
+let dsEditingId = null;
+
+function openDatasetForm(editId) {
+  dsEditingId = editId || null;
+  const ed = dsEditingId ? (DSP.db.datasets || []).find(d => d.id === dsEditingId) : null;
+  const freqOpts = ['每日', '每周', '每月', '每季度', '每年'];
+  const optHTML = (list, cur) => list.map(x => `<option ${x === cur ? 'selected' : ''}>${x}</option>`).join('');
+  const sc = ed ? (ed.scope || []) : DS_DISTRICTS;
+  const allSc = ed ? sc.indexOf('杭州市') > -1 : true;
+  const childSc = d => ed ? sc.indexOf(d) > -1 : true;
   modal({
-    title: '新增数据集', width: 1020, bodyClass: 'pm-bd',
+    title: ed ? '编辑数据集 · ' + ed.name : '新增数据集', width: 1020, bodyClass: 'pm-bd',
     body: `
       <div class="pm-body">
         <div class="pm-head">
-          <span class="badge ok">在架</span>
-          <span class="mono mini">${nextCode('dataset')}（保存后生效）</span>
+          <span class="badge ok">${ed ? '在架' : '在架'}</span>
+          <span class="mono mini">${ed ? esc(ed.code) : nextCode('dataset') + '（保存后生效）'}</span>
         </div>
 
         <section class="pm-sec">
           <div class="pm-sec-hd"><h4>基本信息</h4></div>
-          <div class="form-row"><label><i>*</i>数据集名称</label><input class="input" id="dName" placeholder="如：起降场基础档案"></div>
-          <div class="form-row"><label><i>*</i>数据集简介</label><textarea id="dDesc" placeholder="说明数据内容、覆盖范围与用途"></textarea></div>
+          <div class="form-row"><label><i>*</i>数据集名称</label><input class="input" id="dName" value="${ed ? esc(ed.name) : ''}" placeholder="如：起降场基础档案"></div>
+          <div class="form-row"><label><i>*</i>数据集简介</label><textarea id="dDesc" placeholder="说明数据内容、覆盖范围与用途">${ed ? esc(ed.desc) : ''}</textarea></div>
           <div class="pm-grid">
             <div class="form-row"><label><i>*</i>更新周期</label>
-              <select class="input" id="dFreq"><option>每日</option><option>每周</option><option>每月</option><option>每季度</option><option>每年</option></select></div>
-            <div class="form-row"><label><i>*</i>数据领域</label><input class="input" id="dDomain" placeholder="如：低空经济、交通运输"></div>
+              <select class="input" id="dFreq">${optHTML(freqOpts, ed ? ed.freq : '每日')}</select></div>
+            <div class="form-row"><label><i>*</i>数据领域</label><input class="input" id="dDomain" value="${ed ? esc(ed.domain || ed.category || '') : ''}" placeholder="如：低空经济、交通运输"></div>
           </div>
           <div class="form-row"><label><i>*</i>时间范围</label>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <input class="input" type="date" id="dRangeStart" style="width:168px">
+              <input class="input" type="date" id="dRangeStart" style="width:168px" value="${ed && ed.range ? esc(ed.range.start) : ''}">
               <span class="mini">至</span>
-              <input class="input" type="date" id="dRangeEnd" style="width:168px">
+              <input class="input" type="date" id="dRangeEnd" style="width:168px" value="${ed && ed.range && !ed.range.ongoing ? esc(ed.range.end) : ''}" ${ed && ed.range && ed.range.ongoing ? 'disabled' : ''}>
               <label class="chk" style="border:0;padding:0;background:transparent">
-                <input type="checkbox" id="dRangeOngoing">至今（持续更新）
+                <input type="checkbox" id="dRangeOngoing" ${ed && ed.range && ed.range.ongoing ? 'checked' : ''}>至今（持续更新）
               </label>
             </div>
             <div class="hint">数据覆盖的起止日期，勾选「至今」表示持续更新中</div>
           </div>
           <div class="pm-grid">
             <div class="form-row"><label><i>*</i>开放属性</label>
-              <select class="input" id="dOpen"><option>无条件开放</option><option>受限开放</option></select></div>
+              <select class="input" id="dOpen">${optHTML(['无条件开放', '受限开放'], ed ? ed.openType : '无条件开放')}</select></div>
             <div class="form-row"><label>供应方</label><input class="input" value="${PLATFORM_SUPPLIER}" readonly style="background:#F4F6F9;color:#7A8798"></div>
           </div>
         </section>
@@ -3537,21 +3590,21 @@ function openDatasetForm() {
         <section class="pm-sec">
           <div class="pm-sec-hd"><h4><i class="req-dot">*</i>数据范围</h4><span class="pm-sec-sub">杭州市及下属区县，可多选</span></div>
           <div class="chk-group" id="dScope">
-            <label class="chk chk-parent"><input type="checkbox" id="dScopeAll" checked>杭州市<span class="chk-sub">含下属 13 个区县</span></label>
-            ${DS_DISTRICTS.slice(1).map(d => `<label class="chk"><input type="checkbox" class="dscope-child" value="${d}" checked>${d}</label>`).join('')}
+            <label class="chk chk-parent"><input type="checkbox" id="dScopeAll" ${allSc ? 'checked' : ''}>杭州市<span class="chk-sub">含下属 13 个区县</span></label>
+            ${DS_DISTRICTS.slice(1).map(d => `<label class="chk"><input type="checkbox" class="dscope-child" value="${d}" ${childSc(d) ? 'checked' : ''}>${d}</label>`).join('')}
           </div>
         </section>
 
         <section class="pm-sec">
           <div class="pm-sec-hd"><h4><i class="req-dot">*</i>数据项</h4><span class="pm-sec-sub">按字段逐行登记</span></div>
           <div class="df-head"><span>字段名称</span><span>英文名称</span><span>数据类型</span><span>长度</span><span>允许为空</span><span>主键</span><span>字段描述</span><span>示例值</span><span></span></div>
-          <div id="dsFields">${[1, 2, 3].map(() => dsFieldRowHTML()).join('')}</div>
+          <div id="dsFields">${(ed && ed.fields && ed.fields.length ? ed.fields.map(f => dsFieldRowHTML(f)).join('') : [1, 2, 3].map(() => dsFieldRowHTML()).join(''))}</div>
           <button class="btn btn-sm pm-add" data-act="addDsField">+ 添加字段</button>
         </section>
 
       </div>`,
     footer: `<button class="btn" data-act="closeModal">取消</button>
-      <button class="btn btn-primary" data-act="saveDataset">保存并上架</button>`
+      <button class="btn btn-primary" data-act="saveDataset">${ed ? '保存修改' : '保存并上架'}</button>`
   });
 }
 
@@ -3595,24 +3648,60 @@ function saveDatasetForm() {
   if (!fields.length) { toast('请至少登记一个数据项', 'err'); return; }
   const badField = fields.find(f => !f.name || !f.en);
   if (badField) { toast('数据项缺少字段名称或英文名称', 'err'); return; }
-  const code = nextCode('dataset');
-  const no = Number(code.slice(-4));
-  DSP.db.datasets.unshift({
-    id: 'd' + no, code,
+  const payload = {
     name, desc, supplier: PLATFORM_SUPPLIER,
     freq: g('dFreq'), domain, openType: g('dOpen'),
     range: { start: rStart, end: rEnd, ongoing },
     scope, fields,
     status: 'on'
-  });
+  };
+  if (dsEditingId) {
+    const ed = (DSP.db.datasets || []).find(d => d.id === dsEditingId);
+    if (ed) Object.assign(ed, payload);
+    DSP.save(); closeModal();
+    resTab = 'dataset';
+    toast('已保存修改', 'ok');
+    render();
+    return;
+  }
+  const code = nextCode('dataset');
+  const no = Number(code.slice(-4));
+  DSP.db.datasets.unshift(Object.assign({ id: 'd' + no, code }, payload));
   pushMsg({ to: 'consumer', type: '资源', level: '普通',
     title: `新数据集上架：《${name}》`,
-    body: (g('dRows') || '') + '　' + g('dFreq') + '更新，可在数据目录中查看详情。',
+    body: g('dFreq') + '更新，可在数据目录中查看详情。',
     refType: 'dataset', refId: 'd' + no });
   DSP.save(); closeModal();
   resTab = 'dataset';
   toast('已新增并上架「' + name + '」', 'ok');
   render();
+}
+
+function openManualPreview(f, title) {
+  if (!f) return;
+  const url = f.url || null;
+  const body = url && f.type === 'PDF'
+    ? `<iframe src="${url}" style="width:100%;height:66vh;border:0;border-radius:6px;background:#fff"></iframe>`
+    : `<div class="doc-page">
+        <div class="doc-page-hd">
+          <div class="doc-page-title">${esc(title)} · 产品说明书</div>
+          <div class="doc-page-meta">${esc(f.size || '')}${f.at ? '　·　上传于 ' + esc(f.at) : ''}</div>
+        </div>
+        <div class="doc-page-body">
+          <p><b>一、产品概述</b></p>
+          <p>本文档说明该数据产品的适用范围、接口能力与调用约束，作为使用方接入与验收的依据。</p>
+          <p><b>二、接口清单</b></p>
+          <p>详见产品详情中的「API 清单」，包含接口地址、请求参数、返回字段与使用约束。</p>
+          <p><b>三、服务说明</b></p>
+          <p>调用鉴权采用 API Key；停用或终止授权后密钥立即失效；如需调整请联系平台运营方。</p>
+          <p style="color:#98A2B3;margin-top:26px">＊ 演示环境为文档示意内容，正式环境将渲染上传的原始文件</p>
+        </div>
+      </div>`;
+  modal({
+    title: '产品说明书 · ' + f.name, width: 820, bodyClass: 'pm-bd',
+    body,
+    footer: `<button class="btn" data-act="closeModal">关闭</button>`
+  });
 }
 
 function openResProduct(id) {
@@ -3671,6 +3760,17 @@ function openResProduct(id) {
           <div style="padding:0 0 8px">${apisHTML(p)}</div>
         </section>
 
+        ${p.manualFile ? `<section class="pm-sec">
+          <div class="pm-sec-hd"><h4>产品说明书</h4><span class="pm-sec-sub">${esc(p.manualFile.type || 'PDF')}</span></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:0 0 14px">
+            <div style="flex:1;min-width:0">
+              <div class="mono" style="font-size:12px;word-break:break-all">${esc(p.manualFile.name)}</div>
+              <div class="mini" style="margin-top:4px">${esc(p.manualFile.size || '')}${p.manualFile.at ? '　·　上传于 ' + esc(p.manualFile.at) : ''}</div>
+            </div>
+            <button class="btn btn-primary btn-sm" data-act="manualPreview" data-id="${p.id}">预览说明书</button>
+          </div>
+        </section>` : ''}
+
         ${(p.datasets || []).length ? `<section class="pm-sec">
           <div class="pm-sec-hd"><h4>关联数据集</h4><span class="pm-sec-sub">${(p.datasets || []).length} 个</span></div>
           <div style="padding:0 0 14px">
@@ -3697,7 +3797,9 @@ function openResProduct(id) {
           </div>
         </section>`}
       </div>`,
-    footer: `<button class="btn btn-primary" data-act="closeModal">关闭</button>`
+    footer: `<button class="btn btn-primary" data-act="closeModal">关闭</button>
+      ${state.role === 'operator' ? `<button class="btn" data-act="editProduct" data-id="${p.id}">编辑</button>
+      <button class="btn" style="color:#B42318;border-color:#F6CFCA" data-act="delProduct" data-id="${p.id}">删除</button>` : ''}`
   });
 }
 
@@ -3793,7 +3895,9 @@ function openDatasetDetail(id) {
         </section>` : ''}
 
               </div>`,
-    footer: `<button class="btn btn-primary" data-act="closeModal">关闭</button>`
+    footer: `<button class="btn btn-primary" data-act="closeModal">关闭</button>
+      ${state.role === 'operator' ? `<button class="btn" data-act="editDataset" data-id="${d.id}">编辑</button>
+      <button class="btn" style="color:#B42318;border-color:#F6CFCA" data-act="delDataset" data-id="${d.id}">删除</button>` : ''}`
   });
 }
 
@@ -5209,6 +5313,24 @@ document.addEventListener('click', e => {
       if (lb) lb.style.display = sdkMode === 'link' ? 'block' : 'none';
       break;
     }
+    case 'uploadManual': {
+      const inp = $('#manualInput');
+      if (inp) inp.click();
+      break;
+    }
+    case 'previewManual': {
+      if (!formManual) break;
+      openManualPreview(formManual, $('#fName') ? $('#fName').value : '产品说明书');
+      break;
+    }
+    case 'removeManual': {
+      formManual = null;
+      const lb = $('#manualLabel'); if (lb) lb.textContent = '未上传';
+      const pb = $('#manualPrevBtn'); if (pb) { pb.disabled = true; pb.style.opacity = '.45'; pb.style.cursor = 'not-allowed'; }
+      const db = $('#manualDelBtn'); if (db) db.style.display = 'none';
+      toast('已移除说明书', 'ok');
+      break;
+    }
     case 'uploadSdk': {
       const pn = (($('#fName') || {}).value || '').trim() || 'product';
       const nm = pn + '-sdk-1.0.0.zip';
@@ -5326,7 +5448,84 @@ document.addEventListener('click', e => {
     case 'supDetail': openSupplierDetail(el.dataset.id); break;
     case 'resTab': resTab = el.dataset.v; render(); break;
     case 'dsDetail': openDatasetDetail(el.dataset.id); break;
+    case 'editDataset': {
+      closeModal();
+      openDatasetForm(el.dataset.id);
+      break;
+    }
+    case 'delDataset': {
+      const dd = (DSP.db.datasets || []).find(x => x.id === el.dataset.id);
+      if (!dd) break;
+      const refs = DSP.db.products.filter(p => (p.datasets || []).indexOf(dd.id) > -1);
+      modal({
+        title: '删除数据集 · ' + dd.name, width: 520,
+        body: `<div class="hint">删除后该数据集将从数据目录中移除，且不可恢复。</div>
+          ${kv([
+            ['数据集编号', esc(dd.code)],
+            ['被产品引用', refs.length + ' 个' + (refs.length ? '（将解除关联）' : '')]
+          ])}
+          <div class="form-row" style="margin-top:12px"><label><i>*</i>删除说明</label>
+            <textarea id="delDsNote" placeholder="说明删除原因，将记入操作日志"></textarea></div>`,
+        footer: `<button class="btn" data-act="closeModal">取消</button>
+          <button class="btn" style="background:#B42318;border-color:#B42318;color:#fff" data-act="delDatasetOk" data-id="${dd.id}">确认删除</button>`
+      });
+      break;
+    }
+    case 'delDatasetOk': {
+      const dd = (DSP.db.datasets || []).find(x => x.id === el.dataset.id);
+      if (!dd) break;
+      const note = (($('#delDsNote') || {}).value || '').trim();
+      if (!note) { toast('请填写删除说明', 'err'); break; }
+      DSP.db.datasets = DSP.db.datasets.filter(x => x.id !== dd.id);
+      DSP.db.products.forEach(p => {
+        if ((p.datasets || []).indexOf(dd.id) > -1) p.datasets = p.datasets.filter(x => x !== dd.id);
+      });
+      DSP.db.messages = DSP.db.messages.filter(m => !(m.refType === 'dataset' && m.refId === dd.id));
+      pushOpLog('删除数据集', dd.name + ' / ' + dd.code, note);
+      DSP.save(); closeModal(); toast('已删除「' + dd.name + '」', 'ok'); render(); break;
+    }
     case 'resProd': openResProduct(el.dataset.id); break;
+    case 'manualPreview': {
+      const mp = productOf(el.dataset.id);
+      if (mp && mp.manualFile) openManualPreview(Object.assign({}, mp.manualFile, { url: MANUAL_URLS[mp.id] || null }), mp.name);
+      break;
+    }
+    case 'editProduct': {
+      closeModal();
+      openProdForm(el.dataset.id, { mode: 'operator' });
+      break;
+    }
+    case 'delProduct': {
+      const dp = productOf(el.dataset.id);
+      if (!dp) break;
+      const gs = DSP.db.grants.filter(g => g.productId === dp.id);
+      modal({
+        title: '删除数据产品 · ' + dp.name, width: 520,
+        body: `<div class="hint">删除后该产品将从数据目录中移除，且不可恢复。</div>
+          ${kv([
+            ['产品编号', esc(dp.code)],
+            ['关联授权', gs.length + ' 项' + (gs.length ? '（将一并终止）' : '')],
+            ['调用记录', DSP.db.calls.filter(c => c.productId === dp.id).length + ' 条（将一并清除）']
+          ])}
+          <div class="form-row" style="margin-top:12px"><label><i>*</i>删除说明</label>
+            <textarea id="delProdNote" placeholder="说明删除原因，将记入操作日志"></textarea></div>`,
+        footer: `<button class="btn" data-act="closeModal">取消</button>
+          <button class="btn" style="background:#B42318;border-color:#B42318;color:#fff" data-act="delProductOk" data-id="${dp.id}">确认删除</button>`
+      });
+      break;
+    }
+    case 'delProductOk': {
+      const dp = productOf(el.dataset.id);
+      if (!dp) break;
+      const note = (($('#delProdNote') || {}).value || '').trim();
+      if (!note) { toast('请填写删除说明', 'err'); break; }
+      DSP.db.products = DSP.db.products.filter(x => x.id !== dp.id);
+      DSP.db.grants = DSP.db.grants.filter(g => g.productId !== dp.id);
+      DSP.db.calls = DSP.db.calls.filter(c => c.productId !== dp.id);
+      DSP.db.messages = DSP.db.messages.filter(m => !(m.refType === 'product' && m.refId === dp.id));
+      pushOpLog('删除数据产品', dp.name + ' / ' + dp.code, note);
+      DSP.save(); closeModal(); toast('已删除「' + dp.name + '」', 'ok'); render(); break;
+    }
     case 'newRes': openNewRes(); break;
     case 'newProd': closeModal(); openProdForm(null, { mode: 'operator' }); break;
     case 'newDataset': closeModal(); openDatasetForm(); break;
@@ -5409,6 +5608,25 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('change', e => {
+  if (e.target.id === 'manualInput') {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (['pdf', 'doc', 'docx'].indexOf(ext) < 0) { toast('仅支持 PDF、Word 格式', 'err'); e.target.value = ''; return; }
+    formManual = {
+      name: f.name,
+      size: f.size < 1024 * 1024 ? Math.max(1, Math.round(f.size / 1024)) + ' KB' : (f.size / 1024 / 1024).toFixed(1) + ' MB',
+      type: ext === 'pdf' ? 'PDF' : 'Word',
+      at: today(),
+      url: URL.createObjectURL(f)
+    };
+    MANUAL_URLS.pending = formManual.url;
+    const lb = $('#manualLabel'); if (lb) lb.textContent = f.name + '　·　' + formManual.size;
+    const pb = $('#manualPrevBtn'); if (pb) { pb.disabled = false; pb.style.opacity = ''; pb.style.cursor = ''; }
+    const db = $('#manualDelBtn'); if (db) db.style.display = '';
+    toast('说明书已上传（' + formManual.type + '）', 'ok');
+    return;
+  }
   if (e.target.id === 'dRangeOngoing') {
     const endEl = $('#dRangeEnd');
     if (endEl) { endEl.disabled = e.target.checked; if (e.target.checked) endEl.value = ''; }
