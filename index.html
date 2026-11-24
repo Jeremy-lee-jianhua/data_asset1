@@ -2005,9 +2005,9 @@ function pieChart(items, opts) {
 }
 
 const LOG_STATE = {
-  call: { page: 1, from: '', to: '', res: 'all' },
-  pv: { page: 1, from: '', to: '', res: 'all' },
-  au: { page: 1, from: '', to: '', res: 'all' }
+  call: { page: 1, from: '', to: '', res: 'all', kw: '' },
+  pv: { page: 1, from: '', to: '', res: 'all', kw: '' },
+  au: { page: 1, from: '', to: '', res: 'all', kw: '' }
 };
 const CALL_RES = [['all', '全部结果'], ['0', '成功'], ['46001', '样本不足'], ['40302', '超出空间范围'], ['42901', '超出调用限制']];
 
@@ -2019,6 +2019,7 @@ function logsCard(prefix, rows, opts) {
     if (st.from && d < st.from) return false;
     if (st.to && d > st.to) return false;
     if (st.res !== 'all' && String(c.code) !== st.res) return false;
+    if (o.showCaller && st.kw && orgOfCall(c).indexOf(st.kw) < 0) return false;
     return true;
   });
   const PAGE = 10;
@@ -2042,6 +2043,7 @@ function logsCard(prefix, rows, opts) {
         <select class="select" id="${prefix}Res" style="width:160px">
           ${CALL_RES.map(([v, t]) => `<option value="${v}" ${st.res === v ? 'selected' : ''}>${t}</option>`).join('')}
         </select>
+        ${o.showCaller ? `<input class="input" id="${prefix}Kw" value="${esc(st.kw || '')}" placeholder="按调用方搜索" style="width:190px">` : ''}
         <button class="btn btn-sm" data-act="logReset" data-pfx="${prefix}">重置</button>
         <div style="margin-left:auto;color:#98A2B3;font-size:12.5px">筛选结果 ${list.length} 条</div>
       </div>
@@ -2183,11 +2185,11 @@ function pageCallDetail(g) {
       <div class="card-bd">
         ${pieChart(perApi.filter(x => x.n > 0).map(x => ({ label: x.a.name || x.a.path, value: x.n })))}
         <table style="margin-top:16px">
-          <thead><tr><th>接口</th><th style="width:110px">调用量</th><th style="width:120px">样本成功</th><th style="width:110px" class="right">平均耗时</th></tr></thead>
+          <thead><tr><th>接口</th><th style="width:110px">调用量</th><th style="width:120px">调用成功率</th><th style="width:110px" class="right">平均耗时</th></tr></thead>
           <tbody>${perApi.map(x => `<tr>
             <td><span class="api-method">${esc(x.a.method || 'POST')}</span> <span class="mono" style="font-size:11.5px;color:#667085">${esc(x.a.path)}</span></td>
             <td class="tnum"><b>${num(x.n)}</b> <span class="mini">次</span></td>
-            <td class="mini">${x.n ? x.ok + ' / ' + x.n : '—'}</td>
+            <td class="mini">${x.n ? (x.ok / x.n * 100).toFixed(1) + '%' : '—'}</td>
             <td class="right tnum">${x.n ? x.avg + 'ms' : '—'}</td>
           </tr>`).join('')}</tbody>
         </table>
@@ -3091,11 +3093,11 @@ function pageProviderCallDetail(r) {
         <div class="card-bd">
           ${pieChart(perApi.filter(x => x.n > 0).map(x => ({ label: x.a.name || x.a.path, value: x.n })))}
           <table style="margin-top:16px">
-            <thead><tr><th>接口</th><th style="width:100px">调用量</th><th style="width:110px">样本成功</th><th style="width:100px" class="right">平均耗时</th></tr></thead>
+            <thead><tr><th>接口</th><th style="width:100px">调用量</th><th style="width:110px">调用成功率</th><th style="width:100px" class="right">平均耗时</th></tr></thead>
             <tbody>${perApi.map(x => `<tr>
               <td><span class="api-method">${esc(x.a.method || 'POST')}</span> <span class="mono" style="font-size:11.5px;color:#667085">${esc(x.a.path)}</span></td>
               <td class="tnum"><b>${num(x.n)}</b> <span class="mini">次</span></td>
-              <td class="mini">${x.n ? x.ok + ' / ' + x.n : '—'}</td>
+              <td class="mini">${x.n ? (x.ok / x.n * 100).toFixed(1) + '%' : '—'}</td>
               <td class="right tnum">${x.n ? x.avg + 'ms' : '—'}</td>
             </tr>`).join('')}</tbody>
           </table>
@@ -4554,7 +4556,7 @@ function pageConsumerAudit() {
           <div class="mini" style="margin:7px 0 10px">供应方 · ${esc(r.p.supplier || '—')}</div>
           <div class="prod-meta">
             <div><b>${num(r.n)}</b>调用量</div>
-            <div><b>${r.n ? r.ok + '/' + r.n : '—'}</b>样本成功</div>
+            <div><b>${r.n ? (r.ok / r.n * 100).toFixed(1) + '%' : '—'}</b>调用成功率</div>
             <div><b>${r.avg ? r.avg + 'ms' : '—'}</b>平均耗时</div>
           </div>
           <div class="prod-foot" style="justify-content:flex-end"><span class="btn btn-sm">查看详情</span></div>
@@ -4648,7 +4650,7 @@ function pageAudit() {
       <div class="mini" style="margin:2px 0 8px">供应方：${esc(p.supplier || '—')}</div>
       <div class="prod-meta">
         <div><b>${num(st.n)}</b>调用量（次）</div>
-        <div><b>${st.n ? st.ok + '/' + st.n : '—'}</b>样本成功</div>
+        <div><b>${st.n ? (st.ok / st.n * 100).toFixed(1) + '%' : '—'}</b>调用成功率</div>
         <div><b>${st.n ? st.avg + 'ms' : '—'}</b>平均耗时</div>
       </div>
       <div class="prod-foot" style="align-items:center">
@@ -4737,11 +4739,11 @@ function pageAuditProduct(pid) {
         <div class="card-bd">
           ${pieChart(perApi.filter(x => x.n > 0).map(x => ({ label: x.a.name || x.a.path, value: x.n })))}
           <table style="margin-top:16px">
-            <thead><tr><th>接口</th><th style="width:100px">调用量</th><th style="width:110px">样本成功</th><th style="width:100px" class="right">平均耗时</th></tr></thead>
+            <thead><tr><th>接口</th><th style="width:100px">调用量</th><th style="width:110px">调用成功率</th><th style="width:100px" class="right">平均耗时</th></tr></thead>
             <tbody>${perApi.map(x => `<tr>
               <td><span class="api-method">${esc(x.a.method || 'POST')}</span> <span class="mono" style="font-size:11.5px;color:#667085">${esc(x.a.path)}</span></td>
               <td class="tnum"><b>${num(x.n)}</b> <span class="mini">次</span></td>
-              <td class="mini">${x.n ? x.ok + ' / ' + x.n : '—'}</td>
+              <td class="mini">${x.n ? (x.ok / x.n * 100).toFixed(1) + '%' : '—'}</td>
               <td class="right tnum">${x.n ? x.avg + 'ms' : '—'}</td>
             </tr>`).join('')}</tbody>
           </table>
@@ -5196,7 +5198,7 @@ document.addEventListener('click', e => {
     }
     case 'callTab': callTab = el.dataset.v; render(); break;
     case 'logPage': { const st = LOG_STATE[el.dataset.pfx]; st.page = Number(el.dataset.v); render(); break; }
-    case 'logReset': { const st = LOG_STATE[el.dataset.pfx]; st.from = ''; st.to = ''; st.res = 'all'; st.page = 1; render(); break; }
+    case 'logReset': { const st = LOG_STATE[el.dataset.pfx]; st.from = ''; st.to = ''; st.res = 'all'; st.kw = ''; st.page = 1; render(); break; }
     case 'callBack': callGid = ''; callTab = 'overview'; render(); break;
     case 'sdk': {
       const sp = productOf(el.dataset.id);
@@ -5625,6 +5627,13 @@ document.addEventListener('change', e => {
     const pb = $('#manualPrevBtn'); if (pb) { pb.disabled = false; pb.style.opacity = ''; pb.style.cursor = ''; }
     const db = $('#manualDelBtn'); if (db) db.style.display = '';
     toast('说明书已上传（' + formManual.type + '）', 'ok');
+    return;
+  }
+  if (/^(call|pv|au)Kw$/.test(e.target.id)) {
+    const m = e.target.id.match(/^(call|pv|au)Kw$/);
+    LOG_STATE[m[1]].kw = e.target.value.trim();
+    LOG_STATE[m[1]].page = 1;
+    render();
     return;
   }
   if (e.target.id === 'dRangeOngoing') {
