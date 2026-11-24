@@ -437,6 +437,10 @@ a.btn{text-decoration:none}
 .info-grid dd{padding:12px 0;margin:0;font-size:13px;border-bottom:1px dashed var(--line-2)}
 .file-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px dashed var(--line-2)}
 .file-ico{width:34px;height:34px;border-radius:5px;background:var(--blue-3);display:grid;place-items:center;color:var(--blue);flex:none}
+.stat-mini{border:1px solid #EEF2F7;border-radius:8px;padding:10px 12px;background:#FBFCFE}
+.stat-mini .lab{font-size:11.5px;color:#8494A8}
+.stat-mini .val{font-size:19px;font-weight:600;color:#0F2748;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat-mini .val small{font-size:11px;font-weight:400;color:#8494A8;margin-left:3px}
 .doc-page{background:#F4F6F9;border-radius:8px;padding:18px 20px 22px}
 .doc-page-hd{background:#fff;border-radius:8px 8px 0 0;padding:18px 22px;border-bottom:1px solid #EEF2F7}
 .doc-page-title{font-size:16px;font-weight:600;color:#0F2748}
@@ -758,7 +762,7 @@ const ACCOUNTS = {
 
 const SEED = {
   schema: 1,
-  seedVersion: 'v2.1.0',
+  seedVersion: 'v2.2.0',
   loginAs: '',
   consumer: { providerStatus: '', password: '123456' },
   products: [
@@ -1034,19 +1038,19 @@ const SEED = {
   grants: [
     {
       id: 'G-V1-20261016-001', applicationId: 'A-V1-20261015-001', productId: 'p1', applicant: 'consumer', org: '云帆低空物流科技有限公司',
-      status: 'active', activatedAt: '2026-10-16 00:00', expiresAt: '2026-11-15',
+      status: 'active', activatedAt: '2026-10-16 00:00', expiresAt: '2027-12-31',
       cap: 40000, overage: 0, quota: { type: '周期内', used: 1284 },
       credential: { clientId: 'ak_live_9f2c7e41', key: '••••••••••••', createdAt: '2026-10-16' }
     },
     {
       id: 'G-V1-20261021-002', applicationId: 'A-V1-20261020-002', productId: 'p2', applicant: 'consumer', org: '云帆低空物流科技有限公司',
-      status: 'active', activatedAt: '2026-10-21 00:00', expiresAt: '2026-11-20',
+      status: 'active', activatedAt: '2026-10-21 00:00', expiresAt: '2027-12-31',
       cap: 30000, overage: 0, quota: { type: '周期内', used: 641 },
       credential: { clientId: 'ak_live_3b7d1c08', key: '••••••••••••', createdAt: '2026-10-21' }
     },
     {
       id: 'G-V1-20261025-003', applicationId: '', productId: 'p1', applicant: 'consumer', org: '长三角低空数据服务有限公司',
-      status: 'suspended', activatedAt: '2026-10-25 00:00', expiresAt: '2026-11-24',
+      status: 'suspended', activatedAt: '2026-10-25 00:00', expiresAt: '2027-12-31',
       cap: 20000, overage: 0, quota: { type: '周期内', used: 486 },
       authCode: 'AUTH-20261025-003', contract: { name: '数据使用授权协议_长三角低空.pdf', size: '1.1 MB', at: '2026-10-25 10:20' },
       credential: { clientId: 'ak_live_5d21a90c', key: '••••••••••••', createdAt: '2026-10-25' }
@@ -1060,7 +1064,7 @@ const SEED = {
     },
     {
       id: 'G-V1-20261105-005', applicationId: '', productId: 'p3', applicant: 'consumer', org: '云帆低空物流科技有限公司',
-      status: 'active', activatedAt: '2026-11-10 00:00', expiresAt: '2027-11-09',
+      status: 'active', activatedAt: '2027-01-01 00:00', expiresAt: '2027-12-31',
       cap: 12000, overage: 0, quota: { type: '周期内', used: 0 },
       authCode: 'AUTH-20261105-005', contract: { name: '数据使用授权协议_云帆_空域.pdf', size: '1.3 MB', at: '2026-11-05 09:40' },
       credential: { clientId: 'ak_live_2c9f13ba', key: '••••••••••••', createdAt: '2026-11-05' }
@@ -3163,11 +3167,15 @@ function customerRows() {
   return (DSP.db.customers || []).map(c => {
     const gs = DSP.db.grants.filter(g => orgOfGrant(g) === c.org);
     const cs = DSP.db.calls.filter(x => orgOfCall(x) === c.org);
+    const okN = cs.filter(x => x.code === 0 || x.code === 46001).length;
+    const lastAt = cs.length ? cs.map(x => x.at).sort().slice(-1)[0] : '';
     return {
       c, gs, callN: cs.length,
       used: gs.reduce((s2, g) => s2 + g.quota.used, 0),
       products: new Set(gs.map(g => g.productId)).size,
-      onN: gs.filter(g => g.status === 'active').length
+      onN: gs.filter(g => g.status === 'active').length,
+      rate: cs.length ? okN / cs.length * 100 : null,
+      lastAt
     };
   });
 }
@@ -3194,6 +3202,7 @@ function pageCustomers() {
   const sups = supplierRows();
   const totalCalls = rows.reduce((s2, r) => s2 + r.used, 0);
   const grantN = rows.reduce((s2, r) => s2 + r.gs.length, 0);
+  const activeGrantN = rows.reduce((s2, r) => s2 + r.gs.filter(g => grantState(g) === 'active').length, 0);
   const resN = sups.reduce((s2, r) => s2 + r.ps.length + r.ds.length, 0);
   const isC = custTab === 'consumer';
 
@@ -3211,7 +3220,7 @@ function pageCustomers() {
 
   <div class="grid g4" style="margin-bottom:14px">
     ${kpi(ICON.user, '使用方', rows.length, '家', '开通 ${} 项资源授权'.replace('${}', grantN), 'consumer')}
-    ${kpi(ICON.check, '使用方授权', grantN, '项', '累计调用 ' + num(totalCalls) + ' 次', 'consumer')}
+    ${kpi(ICON.check, '启用中授权', activeGrantN, '项', '共 ' + grantN + ' 项授权 · 累计调用 ' + num(totalCalls) + ' 次', 'consumer')}
     ${kpi(ICON.prod, '供给方', sups.length, '家', '提供数据资源', 'supplier')}
     ${kpi(ICON.catalog, '供给方资源', resN, '个', sups.reduce((s2, r) => s2 + r.ps.length, 0) + ' 个产品 · ' + sups.reduce((s2, r) => s2 + r.ds.length, 0) + ' 个数据集', 'supplier')}
   </div>
@@ -3225,27 +3234,39 @@ function pageCustomers() {
       <span class="mini">${isC ? '开通数据资源、产生调用的机构' : '提供数据产品与数据集的机构'}</span>
     </div>
     <div class="card-bd tight">
-      ${isC ? `<table>
-        <thead><tr><th style="width:320px">使用方机构</th><th style="width:180px">联系人</th>
-          <th style="width:160px">开通授权</th><th style="width:150px">累计调用</th><th style="width:80px" class="right">操作</th></tr></thead>
-        <tbody>${rows.map(r => `<tr>
-          <td><b style="font-weight:500">${esc(r.c.org)}</b><div class="mini">入驻时间 ${esc(r.c.joinedAt)}</div></td>
-          <td class="mini">${esc(r.c.contact)}<div>${esc(r.c.phone)}</div></td>
-          <td class="tnum">${r.gs.length} 项<span class="mini">（${r.products} 个产品）</span></td>
-          <td class="tnum"><b>${num(r.used)}</b> <span class="mini">次</span></td>
-          <td class="right"><button class="btn btn-ghost" style="font-size:12px" data-act="custDetail" data-id="${esc(r.c.org)}">查看</button></td>
-        </tr>`).join('')}</tbody>
-      </table>` : `<table>
-        <thead><tr><th style="width:320px">供给方机构</th><th style="width:180px">联系人</th>
-          <th style="width:230px">提供资源</th><th style="width:130px">被调用</th><th style="width:80px" class="right">操作</th></tr></thead>
-        <tbody>${sups.map(r => `<tr>
-          <td><b style="font-weight:500">${esc(r.sp.org)}</b><div class="mini">入驻时间 ${esc(r.sp.joinedAt)}</div></td>
-          <td class="mini">${esc(r.sp.contact)}<div>${esc(r.sp.phone)}</div></td>
-          <td><div class="tnum nowrap">${r.ps.length} 个产品 · ${r.ds.length} 个数据集</div><div class="mini">${r.apis} 个接口</div></td>
-          <td class="tnum"><b>${num(r.callN)}</b> <span class="mini">次</span></td>
-          <td class="right"><button class="btn btn-ghost" style="font-size:12px" data-act="supDetail" data-id="${esc(r.sp.org)}">查看</button></td>
-        </tr>`).join('')}</tbody>
-      </table>`}
+      ${isC ? `<div class="grid g2" style="padding:14px">
+        ${rows.map(r => `<div class="card" style="padding:16px 18px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div style="min-width:0">
+              <div class="prod-name">${esc(r.c.org)}</div>
+              <div class="mini" style="margin-top:5px">入驻时间 ${esc(r.c.joinedAt)}</div>
+            </div>
+            <button class="btn btn-sm" data-act="custDetail" data-id="${esc(r.c.org)}">查看</button>
+          </div>
+          <div class="prod-meta" style="margin-top:12px;padding-top:12px;border-top:1px dashed #EEF2F7;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div><b>${r.gs.length}</b>已授权</div>
+            <div><b>${num(r.used)}</b>累计调用</div>
+            <div><b>${r.rate === null ? '—' : r.rate.toFixed(1) + '%'}</b>成功率</div>
+            <div><b style="font-size:12.5px;font-weight:500">${r.lastAt ? esc(r.lastAt.slice(5, 16)) : '暂无调用'}</b>最近调用</div>
+          </div>
+        </div>`).join('')}
+      </div>` : `<div class="grid g2" style="padding:14px">
+        ${sups.map(r => `<div class="card" style="padding:16px 18px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div style="min-width:0">
+              <div class="prod-name">${esc(r.sp.org)}</div>
+              <div class="mini" style="margin-top:5px">入驻时间 ${esc(r.sp.joinedAt)}</div>
+            </div>
+            <button class="btn btn-sm" data-act="supDetail" data-id="${esc(r.sp.org)}">查看</button>
+          </div>
+          <div class="prod-meta" style="margin-top:12px;padding-top:12px;border-top:1px dashed #EEF2F7;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div><b>${r.ps.length}</b>产品<span class="mini" style="margin-left:2px">· ${r.apis} 接口</span></div>
+            <div><b>${r.ds.length}</b>数据集</div>
+            <div><b>${num(r.callN)}</b>被调用</div>
+            <div><b>${r.custN}</b>服务客户</div>
+          </div>
+        </div>`).join('')}
+      </div>`}
     </div>
   </div>`;
 }
@@ -3317,60 +3338,130 @@ function openSupplierDetail(org) {
   });
 }
 
+let cdOrg = '', cdPage = 1, cdProd = 'all', cdRes = 'all', cdFrom = '', cdTo = '';
+
 function openCustomerDetail(org) {
   const r = customerRows().find(x => x.c.org === org);
   if (!r) return;
-  const cs = DSP.db.calls.filter(x => orgOfCall(x) === org).slice(0, 12);
+  if (cdOrg !== org) { cdOrg = org; cdPage = 1; cdProd = 'all'; cdRes = 'all'; cdFrom = ''; cdTo = ''; }
+  const allCalls = DSP.db.calls.filter(x => orgOfCall(x) === org).sort((a, b) => b.at.localeCompare(a.at));
+  const st = auditStats(allCalls);
+  const rate = st.n ? st.ok / st.n * 100 : null;
+  const lastAt = allCalls.length ? allCalls[0].at : '';
+
+  const calls = allCalls.filter(c => {
+    const d = c.at.slice(0, 10);
+    if (cdProd !== 'all' && c.productId !== cdProd) return false;
+    if (cdRes !== 'all' && String(c.code) !== cdRes) return false;
+    if (cdFrom && d < cdFrom) return false;
+    if (cdTo && d > cdTo) return false;
+    return true;
+  });
+
+  const PAGE = 10;
+  const pageCount = Math.max(1, Math.ceil(calls.length / PAGE));
+  if (cdPage > pageCount) cdPage = pageCount;
+  const pageRows = calls.slice((cdPage - 1) * PAGE, cdPage * PAGE);
+  const nums = [];
+  for (let i = 1; i <= pageCount; i++) {
+    if (i === 1 || i === pageCount || Math.abs(i - cdPage) <= 1) nums.push(i);
+    else if (nums[nums.length - 1] !== '…') nums.push('…');
+  }
+
+  const byProd = {};
+  allCalls.forEach(c => { const nm = productOf(c.productId).name; byProd[nm] = (byProd[nm] || 0) + 1; });
+  const prodItems = Object.keys(byProd).map(k => ({ label: k, value: byProd[k] })).sort((a, b) => b.value - a.value);
+  const prodOpts = r.gs.map(g => productOf(g.productId));
+
   modal({
-    title: '客户详情 · ' + r.c.org, width: 820, bodyClass: 'pm-bd',
+    title: '使用方详情 · ' + r.c.org, width: 980, bodyClass: 'pm-bd',
     body: `
       <div class="pm-body">
         <section class="pm-sec">
           <div class="pm-sec-hd"><h4>机构信息</h4></div>
-          <div style="padding-bottom:14px">
+          <div style="padding-bottom:6px">
             ${kv([
               ['机构名称', esc(r.c.org)],
               ['联系人', esc(r.c.contact) + '　<span class="mini">' + esc(r.c.phone) + '　' + esc(r.c.email) + '</span>'],
               ['入驻时间', esc(r.c.joinedAt)],
-              ['开通资源', r.products + ' 个产品 · ' + r.gs.length + ' 项授权'],
-              ['累计调用', num(r.used) + ' 次']
+              ['已授权产品', r.products + ' 个 · ' + r.gs.length + ' 项授权']
             ])}
           </div>
         </section>
 
         <section class="pm-sec">
-          <div class="pm-sec-hd"><h4>开通的数据资源</h4></div>
-          <div class="card-bd tight" style="padding:0 0 12px">
-            <table>
-              <thead><tr><th>产品</th><th style="width:160px">授权码</th><th style="width:130px">本周期调用</th><th style="width:110px">有效期至</th><th style="width:90px">状态</th></tr></thead>
-              <tbody>${r.gs.length ? r.gs.map(g => {
-                const p = productOf(g.productId);
-                const st = GRANT_STATUS[grantState(g)];
-                return `<tr>
-                  <td class="one-line">${esc(p.name)} <span class="mini mono">${esc(p.code)}</span></td>
-                  <td class="mono mini">${esc(g.authCode || '—')}</td>
-                  <td class="tnum">${num(g.quota.used)} 次</td>
-                  <td class="mini nowrap">${esc(g.expiresAt)}</td>
-                  <td><span class="badge ${st.c}">${st.t}</span></td>
-                </tr>`;
-              }).join('') : '<tr><td colspan="5" class="mini">暂无开通资源</td></tr>'}</tbody>
-            </table>
+          <div class="pm-sec-hd"><h4>调用概况</h4><span class="pm-sec-sub">近 15 天</span></div>
+          <div class="grid g4" style="margin-bottom:12px">
+            <div class="stat-mini"><div class="lab">累计调用</div><div class="val">${num(r.used)}<small>次</small></div></div>
+            <div class="stat-mini"><div class="lab">调用成功率</div><div class="val" style="color:${rate === null ? '#1D2939' : rate >= 95 ? '#177245' : '#B42318'}">${rate === null ? '—' : rate.toFixed(1)}<small>%</small></div></div>
+            <div class="stat-mini"><div class="lab">策略拒绝</div><div class="val" style="color:${st.reject ? '#B42318' : '#1D2939'}">${num(st.reject)}<small>次</small></div></div>
+            <div class="stat-mini"><div class="lab">最近调用</div><div class="val" style="font-size:15px">${lastAt ? esc(lastAt.slice(0, 16)) : '暂无'}</div></div>
+          </div>
+          <div style="padding:0 0 8px">${allCalls.length ? trendChart(allCalls) : emptyBox('暂无调用数据')}</div>
+        </section>
+
+        <section class="pm-sec">
+          <div class="pm-sec-hd"><h4>已授权的数据产品</h4><span class="pm-sec-sub">${r.gs.length} 项</span></div>
+          <div class="grid g-8-4" style="align-items:start;padding:0 0 12px">
+            <div class="card-bd tight" style="padding:0">
+              <table>
+                <thead><tr><th>产品</th><th style="width:158px">授权码</th><th style="width:96px">本周期调用</th><th style="width:82px">状态</th></tr></thead>
+                <tbody>${r.gs.length ? r.gs.map(g => {
+                  const p = productOf(g.productId);
+                  const gt = GRANT_STATUS[grantState(g)];
+                  return `<tr>
+                    <td class="one-line">${esc(p.name)} <span class="mini mono">${esc(p.code)}</span></td>
+                    <td class="mono mini nowrap">${esc(g.authCode || '—')}</td>
+                    <td class="tnum">${num(g.quota.used)} 次</td>
+                    <td><span class="badge ${gt.c}">${gt.t}</span></td>
+                  </tr>`;
+                }).join('') : '<tr><td colspan="4" class="mini">暂无授权产品</td></tr>'}</tbody>
+              </table>
+            </div>
+            <div>
+              <div class="mini" style="margin-bottom:6px">产品调用占比</div>
+              ${pieChart(prodItems, { compact: true, withLabel: true })}
+            </div>
           </div>
         </section>
 
         <section class="pm-sec">
-          <div class="pm-sec-hd"><h4>最近调用</h4><span class="pm-sec-sub">最近 ${cs.length} 条</span></div>
-          <div class="card-bd tight" style="padding:0 0 12px">
-            <table>
-              <thead><tr><th style="width:170px">调用时间</th><th style="width:180px">产品</th><th>接口</th><th style="width:110px">结果</th><th style="width:80px" class="right">耗时</th></tr></thead>
-              <tbody>${cs.length ? cs.map(x => `<tr>
-                <td class="tnum nowrap mini">${esc(x.at)}</td>
-                <td class="one-line">${esc(productOf(x.productId).name)}</td>
+          <div class="pm-sec-hd"><h4>调用记录明细</h4><span class="pm-sec-sub">共 ${calls.length} 条</span></div>
+          <div class="filter" style="padding:0 0 10px">
+            <select class="select" id="cdProd" style="width:170px">
+              <option value="all">全部产品</option>
+              ${prodOpts.map(p => `<option value="${p.id}" ${cdProd === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+            </select>
+            <select class="select" id="cdRes" style="width:140px">
+              ${CALL_RES.map(([v, t]) => `<option value="${v}" ${cdRes === v ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+            <input class="input" type="date" id="cdFrom" value="${esc(cdFrom)}" style="width:145px">
+            <span class="mini">至</span>
+            <input class="input" type="date" id="cdTo" value="${esc(cdTo)}" style="width:145px">
+            <button class="btn btn-sm" data-act="cdReset">重置</button>
+            <div style="margin-left:auto;color:#98A2B3;font-size:12.5px">筛选结果 ${calls.length} 条</div>
+          </div>
+          <div style="padding:0 0 12px">
+            ${calls.length ? `<table class="doc-table" style="margin-top:4px">
+              <thead><tr><th style="width:150px">调用时间</th><th style="width:170px">产品</th><th>接口</th><th style="width:110px">结果</th><th style="width:80px" class="right">耗时</th></tr></thead>
+              <tbody>${pageRows.map(x => `<tr>
+                <td class="tnum nowrap mini">${esc(x.at.slice(0, 16))}</td>
+                <td class="one-line mini">${esc(productOf(x.productId).name)}</td>
                 <td class="mono" style="font-size:11.5px;color:#667085">${esc(x.endpoint)}</td>
                 <td>${resBadge(x)}</td>
-                <td class="right tnum">${x.latency}ms</td>
-              </tr>`).join('') : '<tr><td colspan="5" class="mini">暂无调用记录</td></tr>'}</tbody>
+                <td class="right tnum mini">${x.latency}ms</td>
+              </tr>`).join('')}</tbody>
             </table>
+            <div class="pager" style="margin-top:12px">
+              <span class="mini">第 ${cdPage} / ${pageCount} 页　·　每页 ${PAGE} 条</span>
+              <div class="pager-btns">
+                <button class="btn btn-sm" data-act="cdPage" data-v="${cdPage - 1}" ${cdPage <= 1 ? 'disabled style="opacity:.45;cursor:not-allowed"' : ''}>上一页</button>
+                ${nums.map(nn => nn === '…'
+                  ? '<span class="mini" style="padding:0 4px">…</span>'
+                  : `<button class="btn btn-sm ${nn === cdPage ? 'btn-primary' : ''}" data-act="cdPage" data-v="${nn}">${nn}</button>`).join('')}
+                <button class="btn btn-sm" data-act="cdPage" data-v="${cdPage + 1}" ${cdPage >= pageCount ? 'disabled style="opacity:.45;cursor:not-allowed"' : ''}>下一页</button>
+              </div>
+            </div>` : emptyBox('没有符合条件的调用记录', '试试调整产品、结果或时间段')}
           </div>
         </section>
       </div>`,
@@ -5397,6 +5488,8 @@ document.addEventListener('click', e => {
     case 'auditTab': auditTab = el.dataset.v; render(); break;
     case 'auditApi': auditApi = el.dataset.v; render(); break;
     case 'custDetail': openCustomerDetail(el.dataset.id); break;
+    case 'cdPage': cdPage = Number(el.dataset.v) || 1; openCustomerDetail(cdOrg); break;
+    case 'cdReset': cdProd = 'all'; cdRes = 'all'; cdFrom = ''; cdTo = ''; cdPage = 1; openCustomerDetail(cdOrg); break;
     case 'accTab': accFilter = el.dataset.v; render(); break;
     case 'switchView': {
       if (state.role === 'operator') {
@@ -5627,6 +5720,15 @@ document.addEventListener('change', e => {
     const pb = $('#manualPrevBtn'); if (pb) { pb.disabled = false; pb.style.opacity = ''; pb.style.cursor = ''; }
     const db = $('#manualDelBtn'); if (db) db.style.display = '';
     toast('说明书已上传（' + formManual.type + '）', 'ok');
+    return;
+  }
+  if (/^cd(Prod|Res|From|To)$/.test(e.target.id)) {
+    if (e.target.id === 'cdProd') cdProd = e.target.value;
+    if (e.target.id === 'cdRes') cdRes = e.target.value;
+    if (e.target.id === 'cdFrom') cdFrom = e.target.value;
+    if (e.target.id === 'cdTo') cdTo = e.target.value;
+    cdPage = 1;
+    openCustomerDetail(cdOrg);
     return;
   }
   if (/^(call|pv|au)Kw$/.test(e.target.id)) {
